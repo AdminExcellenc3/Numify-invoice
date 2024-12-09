@@ -1,0 +1,78 @@
+// This is your Prisma schema file
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String
+  password  String
+  role      String    @default("employee") // admin, accountant, employee
+  companyId String
+  company   Company   @relation(fields: [companyId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Company {
+  id        String     @id @default(uuid())
+  name      String
+  address   String
+  phone     String
+  email     String
+  vatNumber String
+  logo      String?
+  users     User[]
+  customers Customer[]
+  invoices  Invoice[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Customer {
+  id        String    @id @default(uuid())
+  companyId String
+  company   Company   @relation(fields: [companyId], references: [id])
+  name      String
+  email     String
+  address   String
+  phone     String
+  vatNumber String?
+  invoices  Invoice[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Invoice {
+  id         String        @id @default(uuid())
+  companyId  String
+  company    Company       @relation(fields: [companyId], references: [id])
+  customerId String
+  customer   Customer      @relation(fields: [customerId], references: [id])
+  number     String
+  date       DateTime
+  dueDate    DateTime
+  status     String        @default("draft") // draft, sent, paid, overdue
+  subtotal   Float
+  vatTotal   Float
+  total      Float
+  items      InvoiceItem[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model InvoiceItem {
+  id          String  @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
+  description String
+  quantity    Int
+  unitPrice   Float
+  vatRate     Float
+}
